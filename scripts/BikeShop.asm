@@ -64,10 +64,10 @@ BikeShopClerkText:
 	ld hl, BikeShopClerkDoYouLikeItText
 	call PrintText
 	call HandleMenuInput
-	bit BIT_B_BUTTON, a
-	jr nz, .cancel
 	ld hl, wStatusFlags5
 	res BIT_NO_TEXT_DELAY, [hl]
+	bit BIT_B_BUTTON, a
+	jr nz, .cancel
 	ld a, [wCurrentMenuItem]
 	and a
 	jr nz, .cancel
