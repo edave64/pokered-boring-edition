@@ -20,7 +20,7 @@ ClearVariablesOnEnterMap::
 	
 	; Trainer fly fix
 	ld hl, wStatusFlags5
-	set BIT_RESET_NPC_ENCOUNTER, [hl] ; Tell the enemy trainer encounter to abort
+	res BIT_ALLOW_NPC_ENCOUNTER, [hl] ; Don't allow NPC battle without proper encounter (trainer-fly)
 	ld hl, wMiscFlags
 	res BIT_SEEN_BY_TRAINER    , [hl] ; Release buttons from being blocked after trainer-fly
 	ret

@@ -104,7 +104,7 @@ DEF NUM_BADGES EQU const_value
 	const BIT_SCRIPTED_NPC_MOVEMENT   ; 0
 	const BIT_UNKNOWN_5_1             ; 1
 	const BIT_UNKNOWN_5_2             ; 2
-	const BIT_RESET_NPC_ENCOUNTER     ; 3
+	const BIT_ALLOW_NPC_ENCOUNTER     ; 3
 	const BIT_UNKNOWN_5_4             ; 4
 	const BIT_DISABLE_JOYPAD          ; 5
 	const BIT_NO_TEXT_DELAY           ; 6
