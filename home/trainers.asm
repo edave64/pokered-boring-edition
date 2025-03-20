@@ -145,6 +145,9 @@ ENDC
 .trainerEngaging
 	ld hl, wStatusFlags7
 	set BIT_TRAINER_BATTLE, [hl]
+	ld hl, wStatusFlags5
+ 	res BIT_SCRIPTED_NPC_MOVEMENT, [hl] ; Clear NPC movement flag to avoid softlock if this trainer doesn't move
+ 	res BIT_RESET_NPC_ENCOUNTER  , [hl] ; Encounter is triggered correctly -> No trainer-fly
 	ld [wEmotionBubbleSpriteIndex], a
 	xor a ; EXCLAMATION_BUBBLE
 	ld [wWhichEmotionBubble], a
@@ -160,6 +163,9 @@ ENDC
 
 ; display the before battle text after the enemy trainer has walked up to the player's sprite
 DisplayEnemyTrainerTextAndStartBattle::
+	ld a, [wStatusFlags5]
+	and 1 << BIT_RESET_NPC_ENCOUNTER      ; This script was triggered without trainerEngaging before it. (Trainer-fly)
+	jp nz, ResetButtonPressedAndMapScript ; Abort.
 	ld a, [wStatusFlags5]
 	and 1 << BIT_SCRIPTED_NPC_MOVEMENT
 	ret nz ; return if the enemy trainer hasn't finished walking to the player's sprite
@@ -223,6 +229,11 @@ ResetButtonPressedAndMapScript::
 	ldh [hJoyPressed], a
 	ldh [hJoyReleased], a
 	ld [wCurMapScript], a               ; reset battle status
+ 	ld hl, wStatusFlags5
+ 	res BIT_SCRIPTED_NPC_MOVEMENT, [hl] ; Clear NPC movement flag to avoid potential softlocks
+ 	set BIT_RESET_NPC_ENCOUNTER,   [hl] ; Tell the enemy trainer encounter to abort
+ 	ld hl, wMiscFlags
+ 	res BIT_SEEN_BY_TRAINER, [hl]       ; player is no longer engaged by any trainer
 	ret
 
 ; calls TrainerWalkUpToPlayer

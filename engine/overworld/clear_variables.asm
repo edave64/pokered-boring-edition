@@ -17,4 +17,10 @@ ClearVariablesOnEnterMap::
 	ld hl, wWhichTrade
 	ld bc, wStandingOnWarpPadOrHole - wWhichTrade
 	call FillMemory
+	
+	; Trainer fly fix
+	ld hl, wStatusFlags5
+	set BIT_RESET_NPC_ENCOUNTER, [hl] ; Tell the enemy trainer encounter to abort
+	ld hl, wMiscFlags
+	res BIT_SEEN_BY_TRAINER    , [hl] ; Release buttons from being blocked after trainer-fly
 	ret
