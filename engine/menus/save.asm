@@ -197,12 +197,13 @@ OlderFileWillBeErasedText:
 	text_far _OlderFileWillBeErasedText
 	text_end
 
-SaveSAVtoSRAM0:
+SaveMainSavToSRAM:
 	ld a, SRAM_ENABLE
 	ld [MBC1SRamEnable], a
 	ld a, $1
 	ld [MBC1SRamBankingMode], a
 	ld [MBC1SRamBank], a
+
 	ld hl, wPlayerName
 	ld de, sPlayerName
 	ld bc, NAME_LENGTH
@@ -219,8 +220,13 @@ SaveSAVtoSRAM0:
 	ld de, sCurBoxData
 	ld bc, wBoxDataEnd - wBoxDataStart
 	call CopyData
+	ld hl, wPartyDataStart
+	ld de, sPartyData
+	ld bc, wPartyDataEnd - wPartyDataStart
+	call CopyData
 	ldh a, [hTileAnimations]
 	ld [sTileAnimations], a
+
 	ld hl, sGameData
 	ld bc, sGameDataEnd - sGameData
 	call SAVCheckSum
@@ -230,17 +236,19 @@ SaveSAVtoSRAM0:
 	ld [MBC1SRamEnable], a
 	ret
 
-SaveSAVtoSRAM1:
-; stored pokémon
+SaveBoxDatatoSRAM: ; seems to be unused now
+; store box data
 	ld a, SRAM_ENABLE
 	ld [MBC1SRamEnable], a
 	ld a, $1
 	ld [MBC1SRamBankingMode], a
 	ld [MBC1SRamBank], a
+
 	ld hl, wBoxDataStart
 	ld de, sCurBoxData
 	ld bc, wBoxDataEnd - wBoxDataStart
 	call CopyData
+
 	ld hl, sGameData
 	ld bc, sGameDataEnd - sGameData
 	call SAVCheckSum
@@ -250,12 +258,13 @@ SaveSAVtoSRAM1:
 	ld [MBC1SRamEnable], a
 	ret
 
-SaveSAVtoSRAM2:
+SavePartyAndDexToSRAM:
 	ld a, SRAM_ENABLE
 	ld [MBC1SRamEnable], a
 	ld a, $1
 	ld [MBC1SRamBankingMode], a
 	ld [MBC1SRamBank], a
+
 	ld hl, wPartyDataStart
 	ld de, sPartyData
 	ld bc, wPartyDataEnd - wPartyDataStart
@@ -264,6 +273,7 @@ SaveSAVtoSRAM2:
 	ld de, sMainData
 	ld bc, wPokedexSeenEnd - wPokedexOwned
 	call CopyData
+	
 	ld hl, sGameData
 	ld bc, sGameDataEnd - sGameData
 	call SAVCheckSum
@@ -276,9 +286,7 @@ SaveSAVtoSRAM2:
 SaveSAVtoSRAM::
 	ld a, $2
 	ld [wSaveFileStatus], a
-	call SaveSAVtoSRAM0
-	call SaveSAVtoSRAM1
-	jp SaveSAVtoSRAM2
+	jp SaveMainSavToSRAM
 
 SAVCheckSum:
 ;Check Sum (result[1 byte] is complemented)
