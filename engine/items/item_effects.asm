@@ -2824,6 +2824,8 @@ IsNextTileShoreOrWater:
 	call IsInArray
 	jr nc, .notShoreOrWater
 	ld a, [wCurMapTileset]
+	cp GYM ; if it's the Gym tileset
+	jr z, .skipShoreTiles ; Skip gym statues
 	cp SHIP_PORT ; Vermilion Dock tileset
 	ld a, [wTileInFrontOfPlayer] ; tile in front of player
 	jr z, .skipShoreTiles ; if it's the Vermilion Dock tileset
