@@ -6,6 +6,30 @@ VermilionGymTrashText::
 	text_far _VermilionGymTrashText
 	text_end
 
+; How the trash can puzzle works:
+; Every trash can is numbered from top-left, down and to the right. Giving these IDs:
+; 0 3 6 9 C
+; 1 4 7 A D
+; 2 5 8 B E
+;
+; Step 0: At the begin of the puzzle, on map load (?) or after a wrong step 2 (?)
+; - Select a random number between 00 and 0E.
+; - Write it into wFirstLockTrashCanIndex
+;
+; Step 1: Player picks first trash can
+; - Does the random number match [wFirstLockTrashCanIndex]
+; -> Step 2
+; -> Otherwise Step 1
+;
+; Step 2: When the player has found the first trash can:
+; -> Take the current trash can and look it up in GymTrashCans
+; -> Read how many neighbors it has
+; -> Pick one from the list of neighbors
+; -> Write that index into wSecondLockTrashCanIndex
+;
+; Step 3: Player picks second trash can
+; - Does the random number match [wSecondLockTrashCanIndex]
+; -> Solved
 GymTrashScript:
 	call EnableAutoTextBoxDrawing
 	ld a, [wHiddenObjectFunctionArgument]
@@ -41,29 +65,48 @@ GymTrashScript:
 	add a
 	add a
 	add b
+	; a = wGymTrashCanIndex * 5
+	; This is the trash can's offset within the GymTrashCans array
 
 	ld d, 0
 	ld e, a
-	add hl, de
-	ld a, [hli]
+	add hl, de ; Add trash can offset to the base address
+	ld a, [hli] ; Load the first value from the GymTrashCans entry (Random Mask)
+	ldh [hGymTrashCanNeighborCount], a
 
-; Bug: This code should calculate a value in the range [0, 3],
-; but if the mask and random number don't have any 1 bits in common, then
-; the result of the AND will be 0. When 1 is subtracted from that, the value
-; will become $ff. This will result in 255 being added to hl, which will cause
-; hl to point to one of the zero bytes that pad the end of the ROM bank.
-; Trash can 0 was intended to be able to have the second lock only when the
-; first lock was in trash can 1 or 3. However, due to this bug, trash can 0 can
-; have the second lock regardless of which trash can had the first lock.
-
-	ldh [hGymTrashCanRandNumMask], a
+	; Neighbor count can have one of three values: 2, 3, 4
+	; For each, we need to convert our random number 0 to 255 into the range of 0 to (neighbor count - 1)
 	push hl
 	call Random
 	swap a
 	ld b, a
-	ldh a, [hGymTrashCanRandNumMask]
-	and b
-	dec a
+	ldh a, [hGymTrashCanNeighborCount]
+	cp $02
+	jr z, .mod2
+	cp $04
+	jr z, .mod4
+	; For 3, we check into which third of FF the number falls into. That's our neighbor number.
+	ld a, b
+	cp $55 ; 1 / 3
+	ld b, 0
+	jr c, .afterMod3
+	cp $AA ; 2 / 3
+	ld b, 1
+	jr c, .afterMod3
+	ld b, 2 ; 3 / 3
+.afterMod3
+	ld a, b
+	jr .lookupIndex
+.mod2:
+	; For 2, we AND the random number by 1
+	ld a, b
+	and $01
+	jr .lookupIndex
+.mod4:
+	; For 4, we AND the random number by 3
+	ld a, b
+	and $03
+.lookupIndex:
 	pop hl
 
 	ld d, 0
@@ -85,9 +128,12 @@ GymTrashScript:
 
 ; Reset the cans.
 	ResetEvent EVENT_1ST_LOCK_OPENED
+.roll
 	call Random
 
-	and $e
+	and $f
+	cp $f
+	jp z, .roll
 	ld [wFirstLockTrashCanIndex], a
 
 	tx_pre_id VermilionGymTrashFailText
@@ -105,9 +151,8 @@ GymTrashScript:
 	jp PrintPredefTextID
 
 GymTrashCans:
-; byte 0: mask for random number
+; byte 0: Number of neighboring trash cans
 ; bytes 1-4: indices of the trash cans that can have the second lock
-;            (but see the comment above explaining a bug regarding this)
 ; Note that the mask is simply the number of valid trash can indices that
 ; follow. The remaining bytes are filled with 0 to pad the length of each entry
 ; to 5 bytes.

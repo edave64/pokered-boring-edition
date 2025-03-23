@@ -16,7 +16,10 @@ VermilionCity_Script:
 .setFirstLockTrashCanIndex
 	call Random
 	ldh a, [hRandomSub]
-	and $e
+
+	and $f
+	cp $f
+	jp z, .setFirstLockTrashCanIndex; The highest trash can idx is $e
 	ld [wFirstLockTrashCanIndex], a
 	ret
 
