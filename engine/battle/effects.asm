@@ -503,7 +503,7 @@ UpdateStatDone:
 	call ApplyBadgeStatBoosts
 .finalize
 	ld hl, MonsStatsRoseText
-	call PrintText
+	jp PrintText
 
 RestoreOriginalStatModifier:
 	pop hl
