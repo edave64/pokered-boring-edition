@@ -694,13 +694,7 @@ UpdateLoweredStatDone:
 	call ApplyBadgeStatBoosts
 .finalize
 	ld hl, MonsStatsFellText
-	call PrintText
-
-; These where probably added given that a stat-down move affecting speed or attack will override
-; the stat penalties from paralysis and burn respectively.
-; But they are always called regardless of the stat affected by the stat-down move.
-	call QuarterSpeedDueToParalysis
-	jp HalveAttackDueToBurn
+	jp PrintText
 
 CantLowerAnymore_Pop:
 	pop de
