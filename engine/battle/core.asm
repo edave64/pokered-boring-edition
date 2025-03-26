@@ -2379,12 +2379,23 @@ PartyMenuOrRockOrRun:
 	ld hl, AnimationMinimizeMon
 	jr nz, .doEnemyMonAnimation
 ; enemy mon is not minimised
+	call IsGhostBattle
 	ld a, [wEnemyMonSpecies]
+	jr nz, .isNoGhost
+	push af
+	ld a, MON_GHOST
+.isNoGhost:
 	ld [wCurPartySpecies], a
 	ld [wCurSpecies], a
 	call GetMonHeader
 	ld de, vFrontPic
 	call LoadMonFrontSprite
+	ld a, [wCurPartySpecies]
+	cp MON_GHOST
+	jr nz, .enemyMonPicReloaded
+	pop af
+	ld [wCurPartySpecies], a
+	ld [wCurSpecies], a
 	jr .enemyMonPicReloaded
 .doEnemyMonAnimation
 	ld b, BANK(AnimationSubstitute) ; BANK(AnimationMinimizeMon)
@@ -3307,6 +3318,7 @@ IsGhostBattle:
 	dec a
 	ret nz
 	ld a, [wCurMap]
+	; Check if the battle is somewhere in the Pokémon Tower
 	cp POKEMON_TOWER_1F
 	jr c, .next
 	cp POKEMON_TOWER_7F + 1
