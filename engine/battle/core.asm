@@ -3525,6 +3525,7 @@ CheckPlayerStatusConditions:
 	ld [wDamage], a
 	or b
 	jr nz, .next
+	; TODO: Add invulnerability check
 	ld a, 1
 	ld [wMoveMissed], a
 .next
@@ -6022,6 +6023,7 @@ CheckEnemyStatusConditions:
 	res STORING_ENERGY, [hl] ; not using bide any more
 	ld hl, UnleashedEnergyText
 	call PrintText
+	; TODO: Account for player being invincible?
 	ld a, $1
 	ld [wEnemyMovePower], a
 	ld hl, wEnemyBideAccumulatedDamage + 1
@@ -6270,12 +6272,15 @@ LoadEnemyMonData:
 	ld a, [wEnemyMonSpecies2]
 	ld [wPokedexNum], a
 	predef IndexToPokedex
+	call IsGhostBattle
+	jr z, .skipPokedexRegistration
 	ld a, [wPokedexNum]
 	dec a
 	ld c, a
 	ld b, FLAG_SET
 	ld hl, wPokedexSeen
 	predef FlagActionPredef ; mark this mon as seen in the pokedex
+.skipPokedexRegistration
 	ld hl, wEnemyMonLevel
 	ld de, wEnemyMonUnmodifiedLevel
 	ld bc, 1 + NUM_STATS * 2
