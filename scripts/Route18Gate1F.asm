@@ -19,6 +19,8 @@ Route18Gate1FDefaultScript:
 	ld hl, .StopsPlayerCoords
 	call ArePlayerCoordsInArray
 	ret nc
+	ld a, D_RIGHT | D_LEFT | D_UP | D_DOWN
+	ld [wJoyIgnore], a
 	ld a, TEXT_ROUTE18GATE1F_GUARD_EXCUSE_ME
 	ldh [hTextID], a
 	call DisplayTextID
@@ -55,8 +57,6 @@ Route18Gate1FPlayerMovingUpScript:
 	ld a, [wSimulatedJoypadStatesIndex]
 	and a
 	ret nz
-	ld a, D_RIGHT | D_LEFT | D_UP | D_DOWN
-	ld [wJoyIgnore], a
 
 Route18Gate1FGuardScript:
 	ld a, TEXT_ROUTE18GATE1F_GUARD
