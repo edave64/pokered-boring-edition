@@ -16,9 +16,21 @@ SafariZoneGate_ScriptPointers:
 	EXPORT SCRIPT_SAFARIZONEGATE_LEAVING_SAFARI ; used by engine/events/hidden_objects/safari_game.asm
 
 SafariZoneGateDefaultScript:
+	; Is the player in front of the worker?
 	ld hl, .PlayerNextToSafariZoneWorker1CoordsArray
 	call ArePlayerCoordsInArray
 	ret nc
+	jr c, .playerInfrontOfClerk
+
+	; Is the player at the exit?
+	; This can occur if the script was reset from saving and loading in the
+	; safari zone.
+	; Prevents various safari zone escape issues.
+	ld hl, .PlayerOnSafariZoneExitCoordsArray
+	call ArePlayerCoordsInArray
+	jp c, SafariZoneGateSafariZoneWorker1LeavingEarlyText
+	ret
+.playerInfrontOfClerk
 	ld a, TEXT_SAFARIZONEGATE_SAFARI_ZONE_WORKER1_1
 	ldh [hTextID], a
 	call DisplayTextID
@@ -30,11 +42,11 @@ SafariZoneGateDefaultScript:
 	ld [wSpritePlayerStateData1FacingDirection], a
 	ld a, [wCoordIndex]
 	cp 1 ; index of second, lower entry in .PlayerNextToSafariZoneWorker1CoordsArray
-	jr z, .player_not_next_to_worker
+	jr z, .playerNotNextToWorker
 	ld a, SCRIPT_SAFARIZONEGATE_WOULD_YOU_LIKE_TO_JOIN
 	ld [wSafariZoneGateCurScript], a
 	ret
-.player_not_next_to_worker
+.playerNotNextToWorker
 	ld a, D_RIGHT
 	ld c, 1
 	call SafariZoneEntranceAutoWalk
@@ -47,6 +59,11 @@ SafariZoneGateDefaultScript:
 .PlayerNextToSafariZoneWorker1CoordsArray:
 	dbmapcoord  3,  2
 	dbmapcoord  4,  2
+	db -1 ; end
+
+.PlayerOnSafariZoneExitCoordsArray
+	dbmapcoord  3,  0
+	dbmapcoord  4,  0
 	db -1 ; end
 
 SafariZoneGatePlayerMovingRightScript:
