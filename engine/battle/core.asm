@@ -3864,7 +3864,7 @@ PrintMoveFailureText:
 .playersTurn
 	ld hl, DoesntAffectMonText
 	ld a, [wDamageMultipliers]
-	and EFFECTIVENESS_MASK
+	and a
 	jr z, .gotTextToPrint
 	ld hl, AttackMissedText
 	ld a, [wCriticalHitOrOHKO]
@@ -5261,19 +5261,18 @@ AdjustDamageForMoveType:
 	ld [wDamage], a
 	ld a, l
 	ld [wDamage + 1], a
-	ld hl, wDamageMultipliers
-	set BIT_STAB_DAMAGE, [hl]
-.skipSameTypeAttackBonus
 	ld a, [wMoveType]
-	ld b, a
+.skipSameTypeAttackBonus
+	ld b, a ; b = move type
 	ld hl, TypeEffects
+	ld c, EFFECTIVE
 .loop
 	ld a, [hli] ; a = "attacking type" of the current type pair
-	cp $ff
-	jr z, .done
+	cp $ff ; end of table marker
+	jp z, .done
 	cp b ; does move type match "attacking type"?
+	ld a, [hli] ; a = "defending type" of the current type pair
 	jr nz, .nextTypePair
-	ld a, [hl] ; a = "defending type" of the current type pair
 	cp d ; does type 1 of defender match "defending type"?
 	jr z, .matchingPairFound
 	cp e ; does type 2 of defender match "defending type"?
@@ -5281,16 +5280,25 @@ AdjustDamageForMoveType:
 	jr .nextTypePair
 .matchingPairFound
 ; if the move type matches the "attacking type" and one of the defender's types matches the "defending type"
-	push hl
-	push bc
-	inc hl
-	ld a, [wDamageMultipliers]
-	and 1 << BIT_STAB_DAMAGE
-	ld b, a
 	ld a, [hl] ; a = damage multiplier
-	ldh [hMultiplier], a
-	add b
+	and a
+	jr z, .zeroDmg ; Immunity -> Short cut
+	cp EFFECTIVE
+	jp c, .notEffective
+	; veryEffective
+	sla c
+	jr .nextTypePair
+.notEffective
+	srl c
+.nextTypePair
+	inc hl
+	jp .loop
+.done
+	ld a, c
 	ld [wDamageMultipliers], a
+	cp EFFECTIVE
+	ret z ; If no special type hanling -> exit
+	ld [hMultiplier], a
 	xor a
 	ldh [hMultiplicand], a
 	ld hl, wDamage
@@ -5299,7 +5307,7 @@ AdjustDamageForMoveType:
 	ld a, [hld]
 	ldh [hMultiplicand + 2], a
 	call Multiply
-	ld a, 10
+	ld a, EFFECTIVE
 	ldh [hDivisor], a
 	ld b, 4
 	call Divide
@@ -5309,20 +5317,10 @@ AdjustDamageForMoveType:
 	ldh a, [hQuotient + 3]
 	ld [hl], a
 	or b ; is damage 0?
-	jr nz, .skipTypeImmunity
-.typeImmunity
-; if damage is 0, make the move miss
-; this only occurs if a move that would do 2 or 3 damage is 0.25x effective against the target
+	ret nz
+.zeroDmg
 	inc a
 	ld [wMoveMissed], a
-.skipTypeImmunity
-	pop bc
-	pop hl
-.nextTypePair
-	inc hl
-	inc hl
-	jp .loop
-.done
 	ret
 
 ; function to tell how effective the type of an enemy attack is on the player's current pokemon
