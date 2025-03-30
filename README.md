@@ -1,4 +1,4 @@
-# Pokémon Red and Blue [![Build Status][ci-badge]][ci] - Boring Edition
+# Pokémon Red and Blue - Boring Edition [![Build Status][ci-badge]][ci]
 
 This is a mod of Pokémon Red and Blue that aims to fix bugs present in the original game.
 
