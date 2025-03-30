@@ -2066,7 +2066,7 @@ ItemUsePPRestore:
 	cp MAX_ETHER
 	jr z, .fullyRestorePP
 	ld a, [hl] ; move PP
-	and %00111111 ; lower 6 bit bits store current PP
+	and PP_VALUE_MASK ; lower 6 bit bits store current PP
 	cp b ; does current PP equal max PP?
 	ret z ; if so, return
 	add 10 ; increase current PP by 10
@@ -2079,7 +2079,7 @@ ItemUsePPRestore:
 	ld b, a
 .storeNewAmount
 	ld a, [hl] ; move PP
-	and %11000000 ; PP Up counter bits
+	and PP_UP_MASK ; PP Up counter bits
 	add b
 	ld [hl], a
 	ret
@@ -2411,7 +2411,7 @@ RestoreBonusPP:
 	jr nz, .nextMove
 .skipMenuItemIDCheck
 	ld a, [hl]
-	and %11000000 ; have any PP Ups been used?
+	and PP_UP_MASK ; have any PP Ups been used?
 	call nz, AddBonusPP ; if so, add bonus PP
 .nextMove
 	inc hl
@@ -2517,7 +2517,7 @@ GetMaxPP:
 .addPPOffset
 	add hl, bc
 	ld a, [hl] ; a = current PP
-	and %11000000 ; get PP Up count
+	and PP_UP_MASK ; get PP Up count
 	pop bc
 	or b ; place normal max PP in 6 lower bits of a
 	ASSERT wMoveData + MOVE_PP + 1 == wPPUpCountAndMaxPP
@@ -2529,7 +2529,7 @@ GetMaxPP:
 	ld [wUsingPPUp], a
 	call AddBonusPP ; add bonus PP from PP Ups
 	ld a, [hl]
-	and %00111111 ; mask out the PP Up count
+	and PP_VALUE_MASK ; mask out the PP Up count
 	ld [wMaxPP], a ; store max PP
 	ret
 
