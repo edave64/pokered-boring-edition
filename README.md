@@ -1,4 +1,4 @@
-# Pokémon Red and Blue - Boring Edition [![Build Status][ci-badge]][ci]
+# Pokémon Red and Blue - Boring Edition ![Build Status](https://github.com/edave64/pokered-boring-edition/actions/workflows/main.yml/badge.svg)
 
 This is a mod of Pokémon Red and Blue that aims to fix bugs present in the original game.
 
