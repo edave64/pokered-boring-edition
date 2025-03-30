@@ -1,31 +1,35 @@
-# Pokémon Red and Blue [![Build Status][ci-badge]][ci]
+# Pokémon Red and Blue [![Build Status][ci-badge]][ci] - Boring Edition
 
-This is a disassembly of Pokémon Red and Blue.
+This is a mod of Pokémon Red and Blue that aims to fix bugs present in the original game.
 
-It builds the following ROMs:
+For documentation, please look at the original [pokered](https://github.com/pret/pokered) project.
 
-- Pokemon Red (UE) [S][!].gb `sha1: ea9bcae617fdf159b045185467ae58b2e4a48b9a`
-- Pokemon Blue (UE) [S][!].gb `sha1: d7037c83e1ae5b39bde3c30787637ba1d4c48ce2`
-- BLUEMONS.GB (debug build) `sha1: 5b1456177671b79b263c614ea0e7cc9ac542e9c4`
-- dmgapae0.e69.patch `sha1: 0fb5f743696adfe1dbb2e062111f08f9bc5a293a`
-- dmgapee0.e68.patch `sha1: ed4be94dc29c64271942c87f2157bca9ca1019c7`
+## Not a glitch
 
-To set up the repository, see [**INSTALL.md**](INSTALL.md).
+Some things that are commonly reported as glitches are deemed "not glitches"
+for this project. This is typically done because it has a minor effect on
+gameplay and an argument is made that it was explicitly intended or
+acknowledged by the programmers.
 
+### Red bar
+When the beeping sound plays that alerts you that your Pokémon has low
+health, some effects are skipped, making battles faster.
 
-## See also
+This is often exploited in speedruns, much to the annoyance of anyone with ears
+and is often reported as a bug, because the game simply ran out of sound
+channels when the beeping is played.
 
-- [**Wiki**][wiki] (includes [tutorials][tutorials])
-- [**Symbols**][symbols]
-- [**Tools**][tools]
+However, the function `WaitForSoundToFinish` explicitly returns early when the
+`wLowHealthAlarm` is set, making this actually intended behavior. Still born of
+a limitation, but not happening by accident.
 
-You can find us on [Discord (pret, #pokered)](https://discord.gg/d5dubZ3).
+### No Pokémon encounters on some shore tiles
 
-For other pret projects, see [pret.github.io](https://pret.github.io/).
+In the original game, the western shores and northern shores cannot spawn any
+Pokémon. In this mod, as part of the star-grass fix, this now happens on
+eastern and northern shores.
 
-[wiki]: https://github.com/pret/pokered/wiki
-[tutorials]: https://github.com/pret/pokered/wiki/Tutorials
-[symbols]: https://github.com/pret/pokered/tree/symbols
-[tools]: https://github.com/pret/gb-asm-tools
-[ci]: https://github.com/pret/pokered/actions
-[ci-badge]: https://github.com/pret/pokered/actions/workflows/main.yml/badge.svg
+While the code for wild encounters was buggy and used to reference two
+different tiles, it is very clear from how the mechanism functions that it
+would always exclude some shore tiles. I believe this was an intentional
+tradeoff.
