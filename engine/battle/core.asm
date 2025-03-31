@@ -5262,7 +5262,7 @@ AdjustDamageForMoveType:
 .loop
 	ld a, [hli] ; a = "attacking type" of the current type pair
 	cp $ff ; end of table marker
-	jp z, .done
+	jr z, .done
 	cp b ; does move type match "attacking type"?
 	ld a, [hli] ; a = "defending type" of the current type pair
 	jr nz, .nextTypePair
@@ -5275,9 +5275,9 @@ AdjustDamageForMoveType:
 ; if the move type matches the "attacking type" and one of the defender's types matches the "defending type"
 	ld a, [hl] ; a = damage multiplier
 	and a
-	jr z, .zeroDmg ; Immunity -> Short cut
+	jr z, .immune
 	cp EFFECTIVE
-	jp c, .notEffective
+	jr c, .notEffective
 	; veryEffective
 	sla c
 	jr .nextTypePair
@@ -5285,7 +5285,10 @@ AdjustDamageForMoveType:
 	srl c
 .nextTypePair
 	inc hl
-	jp .loop
+	jr .loop
+.immune
+	ld c, 0 ; multiplier will be 0, no need to continue the loop
+	; Investigate if we can skip straight to zeroDmg? That might break the move counter.
 .done
 	ld a, c
 	ld [wDamageMultipliers], a
