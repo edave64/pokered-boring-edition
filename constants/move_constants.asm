@@ -219,4 +219,4 @@ DEF NUM_ATTACK_ANIMS EQU const_value - 1
 ; bits count the number of PP up used and the number of remaining pp in the
 ; lower
 DEF PP_UP_MASK    EQU %11000000
-DEF PP_VALUE_MASK EQU %00111111
+DEF PP_VALUE_MASK EQU ~PP_UP_MASK
