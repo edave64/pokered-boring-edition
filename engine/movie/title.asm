@@ -104,7 +104,7 @@ DisplayTitleScreen:
 ; place tiles for title screen copyright
 	hlcoord 2, 17
 	ld de, .tileScreenCopyrightTiles
-	ld b, $10
+	ld b, .tileScreenCopyrightTilesEnd - .tileScreenCopyrightTiles
 .tileScreenCopyrightTilesLoop
 	ld a, [de]
 	ld [hli], a
@@ -116,6 +116,7 @@ DisplayTitleScreen:
 
 .tileScreenCopyrightTiles
 	db $41,$42,$43,$42,$44,$42,$45,$46,$47,$48,$49,$4A,$4B,$4C,$4D,$4E ; ©'95.'96.'98 GAME FREAK inc.
+.tileScreenCopyrightTilesEnd
 
 .next
 	call SaveScreenTilesToBuffer2
@@ -254,12 +255,12 @@ ENDC
 	call LoadGBPal
 	ldh a, [hJoyHeld]
 	ld b, a
-	and D_UP | SELECT | B_BUTTON
-	cp D_UP | SELECT | B_BUTTON
+	and PAD_UP | PAD_SELECT | PAD_B
+	cp PAD_UP | PAD_SELECT | PAD_B
 	jp z, .doClearSaveDialogue
 IF DEF(_DEBUG)
 	ld a, b
-	bit BIT_SELECT, a
+	bit B_PAD_SELECT, a
 	jp nz, DebugMenu
 ENDC
 	jp MainMenu
@@ -356,8 +357,8 @@ DrawPlayerCharacter:
 
 ClearBothBGMaps:
 	ld hl, vBGMap0
-	ld bc, $400 * 2
-	ld a, " "
+	ld bc, 2 * TILEMAP_AREA
+	ld a, ' '
 	jp FillMemory
 
 LoadTitleMonSprite:
@@ -380,7 +381,7 @@ LoadCopyrightAndTextBoxTiles:
 LoadCopyrightTiles:
 	ld de, NintendoCopyrightLogoGraphics
 	ld hl, vChars2 tile $60
-	lb bc, BANK(NintendoCopyrightLogoGraphics), (GameFreakLogoGraphicsEnd - NintendoCopyrightLogoGraphics) / $10
+	lb bc, BANK(NintendoCopyrightLogoGraphics), (GameFreakLogoGraphicsEnd - NintendoCopyrightLogoGraphics) / TILE_SIZE
 	call CopyVideoData
 	hlcoord 2, 7
 	ld de, CopyrightTextString

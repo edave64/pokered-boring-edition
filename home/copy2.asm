@@ -6,11 +6,11 @@ FarCopyData2::
 	push af
 	ldh a, [hROMBankTemp]
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 	call CopyData
 	pop af
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 	ret
 
 FarCopyData3::
@@ -20,7 +20,7 @@ FarCopyData3::
 	push af
 	ldh a, [hROMBankTemp]
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 	push hl
 	push de
 	push de
@@ -32,7 +32,7 @@ FarCopyData3::
 	pop hl
 	pop af
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 	ret
 
 FarCopyDataDouble::
@@ -43,7 +43,7 @@ FarCopyDataDouble::
 	push af
 	ldh a, [hROMBankTemp]
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 .loop
 	ld a, [hli]
 	ld [de], a
@@ -56,7 +56,7 @@ FarCopyDataDouble::
 	jr nz, .loop
 	pop af
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 	ret
 
 CopyVideoData::
@@ -74,7 +74,7 @@ CopyVideoData::
 
 	ld a, b
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 
 	ld a, e
 	ldh [hVBlankCopySource], a
@@ -96,7 +96,7 @@ CopyVideoData::
 	call DelayFrame
 	ldh a, [hROMBankTemp]
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 	pop af
 	ldh [hAutoBGTransferEnabled], a
 	ret
@@ -123,7 +123,7 @@ CopyVideoDataDouble::
 
 	ld a, b
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 
 	ld a, e
 	ldh [hVBlankCopyDoubleSource], a
@@ -145,7 +145,7 @@ CopyVideoDataDouble::
 	call DelayFrame
 	ldh a, [hROMBankTemp]
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 	pop af
 	ldh [hAutoBGTransferEnabled], a
 	ret
@@ -161,39 +161,39 @@ CopyVideoDataDouble::
 
 ClearScreenArea::
 ; Clear tilemap area cxb at hl.
-	ld a, " " ; blank tile
-	ld de, 20 ; screen width
-.y
+	ld a, ' '
+	ld de, SCREEN_WIDTH
+.loopRows
 	push hl
 	push bc
-.x
+.loopTiles
 	ld [hli], a
 	dec c
-	jr nz, .x
+	jr nz, .loopTiles
 	pop bc
 	pop hl
 	add hl, de
 	dec b
-	jr nz, .y
+	jr nz, .loopRows
 	ret
 
 CopyScreenTileBufferToVRAM::
 ; Copy wTileMap to the BG Map starting at b * $100.
 ; This is done in thirds of 6 rows, so it takes 3 frames.
 
-	ld c, 6
+	ld c, SCREEN_HEIGHT / 3
 
-	ld hl, $600 * 0
+	lb hl, 0, 0
 	decoord 0, 6 * 0
 	call .setup
 	call DelayFrame
 
-	ld hl, $600 * 1
+	lb hl, SCREEN_HEIGHT / 3, 0
 	decoord 0, 6 * 1
 	call .setup
 	call DelayFrame
 
-	ld hl, $600 * 2
+	lb hl, 2 * SCREEN_HEIGHT / 3, 0
 	decoord 0, 6 * 2
 	call .setup
 	jp DelayFrame
@@ -215,10 +215,10 @@ CopyScreenTileBufferToVRAM::
 ClearScreen::
 ; Clear wTileMap, then wait
 ; for the bg map to update.
-	ld bc, 20 * 18
+	ld bc, SCREEN_AREA
 	inc b
 	hlcoord 0, 0
-	ld a, " "
+	ld a, ' '
 .loop
 	ld [hli], a
 	dec c

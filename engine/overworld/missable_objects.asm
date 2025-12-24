@@ -15,9 +15,6 @@ MarkTownVisitedAndLoadMissableObjects::
 	add hl, bc
 	ld a, [hli]                ; load missable objects pointer in hl
 	ld h, [hl]
-	; fall through
-
-LoadMissableObjects:
 	ld l, a
 	push hl
 	ld de, MissableObjects     ; calculate difference between out pointer and the base pointer
@@ -181,10 +178,10 @@ MissableObjectFlagAction:
 	ld a, b
 	and a
 	jr z, .reset
-	cp 2
+	cp FLAG_TEST
 	jr z, .read
 
-.set
+; set
 	ld a, [hl]
 	ld b, a
 	ld a, d

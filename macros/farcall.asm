@@ -1,3 +1,10 @@
+; Far calls to another bank
+
+; There is no difference between `farcall` and `callfar`, except the arbitrary
+; order in which they set `b` and `hl` before calling `FarCall`.
+; We use the more natural name "farcall" for the more common order.
+; The same goes for `farjp` and `jpfar`.
+
 MACRO farcall
 	ld b, BANK(\1)
 	ld hl, \1
@@ -27,11 +34,11 @@ MACRO homecall
 	push af
 	ld a, BANK(\1)
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 	call \1
 	pop af
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 ENDM
 
 MACRO homecall_sf ; homecall but save flags by popping into bc instead of af
@@ -39,10 +46,10 @@ MACRO homecall_sf ; homecall but save flags by popping into bc instead of af
 	push af
 	ld a, BANK(\1)
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 	call \1
 	pop bc
 	ld a, b
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 ENDM

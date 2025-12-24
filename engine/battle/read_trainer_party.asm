@@ -31,14 +31,14 @@ ReadTrainer:
 ; and hl points to the trainer class.
 ; Our next task is to iterate through the trainers,
 ; decrementing b each time, until we get to the right one.
-.outer
+.CheckNextTrainer
 	dec b
 	jr z, .IterateTrainer
-.inner
+.SkipTrainer
 	ld a, [hli]
 	and a
-	jr nz, .inner
-	jr .outer
+	jr nz, .SkipTrainer
+	jr .CheckNextTrainer
 
 ; if the first byte of trainer data is FF,
 ; - each pokemon has a specific level
@@ -92,7 +92,7 @@ ReadTrainer:
 	ld a, [hli]
 	ld d, [hl]
 	ld hl, wEnemyMon1Moves + 2
-	ld bc, wEnemyMon2 - wEnemyMon1
+	ld bc, PARTYMON_STRUCT_LENGTH
 	call AddNTimes
 	ld [hl], d
 	jr .FinishUp

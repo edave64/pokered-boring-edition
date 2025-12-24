@@ -50,7 +50,7 @@ DisplayListMenuID::
 	ld [wTopMenuItemY], a
 	ld a, 5
 	ld [wTopMenuItemX], a
-	ld a, A_BUTTON | B_BUTTON | SELECT
+	ld a, PAD_A | PAD_B | PAD_SELECT
 	ld [wMenuWatchedKeys], a
 	ld c, 10
 	call DelayFrames
@@ -65,8 +65,8 @@ DisplayListMenuIDLoop::
 	ld a, [wBattleType]
 	and a ; is it the Old Man battle?
 	jr z, .notOldManBattle
-.oldManBattle
-	ld a, "▶"
+; Old Man battle
+	ld a, '▶'
 	ldcoord_a 5, 4 ; place menu cursor in front of first menu entry
 	ld c, 80
 	call DelayFrames
@@ -84,7 +84,7 @@ DisplayListMenuIDLoop::
 	push af
 	call PlaceMenuCursor
 	pop af
-	bit BIT_A_BUTTON, a
+	bit B_PAD_A, a
 	jp z, .checkOtherKeys
 .buttonAPressed
 	ld a, [wCurrentMenuItem]
@@ -170,15 +170,15 @@ DisplayListMenuIDLoop::
 	res BIT_NO_TEXT_DELAY, [hl]
 	jp BankswitchBack
 .checkOtherKeys ; check B, SELECT, Up, and Down keys
-	bit BIT_B_BUTTON, a
+	bit B_PAD_B, a
 	jp nz, ExitListMenu ; if so, exit the menu
-	bit BIT_SELECT, a
+	bit B_PAD_SELECT, a
 	jp nz, HandleItemListSwapping ; if so, allow the player to swap menu entries
 	ld b, a
-	bit BIT_D_DOWN, b
+	bit B_PAD_DOWN, b
 	ld hl, wListScrollOffset
 	jr z, .upPressed
-.downPressed
+; Down pressed
 	ld a, [hl]
 	add 3
 	ld b, a
@@ -222,13 +222,13 @@ DisplayChooseQuantityMenu::
 .waitForKeyPressLoop
 	call JoypadLowSensitivity
 	ldh a, [hJoyPressed] ; newly pressed buttons
-	bit BIT_A_BUTTON, a
+	bit B_PAD_A, a
 	jp nz, .buttonAPressed
-	bit BIT_B_BUTTON, a
+	bit B_PAD_B, a
 	jp nz, .buttonBPressed
-	bit BIT_D_UP, a
+	bit B_PAD_UP, a
 	jr nz, .incrementQuantity
-	bit BIT_D_DOWN, a
+	bit B_PAD_DOWN, a
 	jr nz, .decrementQuantity
 	jr .waitForKeyPressLoop
 .incrementQuantity
@@ -295,7 +295,7 @@ DisplayChooseQuantityMenu::
 	ld de, SpacesBetweenQuantityAndPriceText
 	call PlaceString
 	ld de, hMoney ; total price
-	ld c, $a3
+	ld c, 3 | LEADING_ZEROES | MONEY_SIGN
 	call PrintBCDNumber
 	hlcoord 9, 10
 .printQuantity
@@ -380,7 +380,7 @@ PrintListMenuEntries::
 	jr z, .pokemonPCMenu
 	cp MOVESLISTMENU
 	jr z, .movesMenu
-.itemMenu
+; item menu
 	call GetItemName
 	jr .placeNameString
 .pokemonPCMenu
@@ -411,7 +411,7 @@ PrintListMenuEntries::
 	ld a, [wPrintItemPrices]
 	and a ; should prices be printed?
 	jr z, .skipPrintingItemPrice
-.printItemPrice
+; print item price
 	push hl
 	ld a, [de]
 	ld de, ItemPrices
@@ -420,13 +420,13 @@ PrintListMenuEntries::
 	pop hl
 	ld bc, SCREEN_WIDTH + 5 ; 1 row down and 5 columns right
 	add hl, bc
-	ld c, $a3 ; no leading zeroes, right-aligned, print currency symbol, 3 bytes
+	ld c, 3 | LEADING_ZEROES | MONEY_SIGN
 	call PrintBCDNumber
 .skipPrintingItemPrice
 	ld a, [wListMenuID]
 	and a ; PCPOKEMONLISTMENU?
 	jr nz, .skipPrintingPokemonLevel
-.printPokemonLevel
+; print Pokemon level
 	ld a, [wNamedObjectIndex]
 	push af
 	push hl
@@ -451,12 +451,12 @@ PrintListMenuEntries::
 	ld a, [wMonDataLocation]
 	and a ; is it a list of party pokemon or box pokemon?
 	jr z, .skipCopyingLevel
-.copyLevel
+; copy level
 	ld a, [wLoadedMonBoxLevel]
 	ld [wLoadedMonLevel], a
 .skipCopyingLevel
 	pop hl
-	ld bc, $1c
+	ld bc, SCREEN_WIDTH + 8 ; 1 row down and 8 columns right
 	add hl, bc
 	call PrintLevel
 	pop af
@@ -468,7 +468,7 @@ PrintListMenuEntries::
 	ld a, [wListMenuID]
 	cp ITEMLISTMENU
 	jr nz, .nextListEntry
-.printItemQuantity
+; print item quantity
 	ld a, [wNamedObjectIndex]
 	ld [wCurItem], a
 	call IsKeyItem ; check if item is unsellable
@@ -478,7 +478,7 @@ PrintListMenuEntries::
 	push hl
 	ld bc, SCREEN_WIDTH + 8 ; 1 row down and 8 columns right
 	add hl, bc
-	ld a, "×"
+	ld a, '×'
 	ld [hli], a
 	ld a, [wNamedObjectIndex]
 	push af
@@ -506,7 +506,7 @@ PrintListMenuEntries::
 	cp c ; is it this item?
 	jr nz, .nextListEntry
 	dec hl
-	ld a, "▷"
+	ld a, '▷'
 	ld [hli], a
 .nextListEntry
 	ld bc, 2 * SCREEN_WIDTH ; 2 rows
@@ -517,7 +517,7 @@ PrintListMenuEntries::
 	jp nz, .loop
 	ld bc, -8
 	add hl, bc
-	ld a, "▼"
+	ld a, '▼'
 	ld [hl], a
 	ret
 .printCancelMenuItem

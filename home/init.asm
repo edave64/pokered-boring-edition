@@ -7,17 +7,6 @@ SoftReset::
 
 Init::
 ;  Program init.
-
-; * LCD enabled
-; * Window tile map at $9C00
-; * Window display enabled
-; * BG and window tile data at $8800
-; * BG tile map at $9800
-; * 8x8 OBJ size
-; * OBJ display enabled
-; * BG display enabled
-DEF rLCDC_DEFAULT EQU (1 << rLCDC_ENABLE) | (1 << rLCDC_WINDOW_TILEMAP) | (1 << rLCDC_WINDOW_ENABLE) | (1 << rLCDC_SPRITES_ENABLE) | (1 << rLCDC_BG_PRIORITY)
-
 	di
 
 	xor a
@@ -35,7 +24,7 @@ DEF rLCDC_DEFAULT EQU (1 << rLCDC_ENABLE) | (1 << rLCDC_WINDOW_TILEMAP) | (1 << 
 	ldh [rOBP0], a
 	ldh [rOBP1], a
 
-	ld a, 1 << rLCDC_ENABLE
+	ld a, LCDC_ON
 	ldh [rLCDC], a
 	call DisableLCD
 
@@ -61,7 +50,7 @@ DEF rLCDC_DEFAULT EQU (1 << rLCDC_ENABLE) | (1 << rLCDC_WINDOW_TILEMAP) | (1 << 
 
 	ld a, BANK(WriteDMACodeToHRAM)
 	ldh [hLoadedROMBank], a
-	ld [MBC1RomBank], a
+	ld [rROMB], a
 	call WriteDMACodeToHRAM
 
 	xor a
@@ -70,7 +59,7 @@ DEF rLCDC_DEFAULT EQU (1 << rLCDC_ENABLE) | (1 << rLCDC_WINDOW_TILEMAP) | (1 << 
 	ldh [hSCX], a
 	ldh [hSCY], a
 	ldh [rIF], a
-	ld a, 1 << VBLANK + 1 << TIMER + 1 << SERIAL
+	ld a, IE_VBLANK | IE_TIMER | IE_SERIAL
 	ldh [rIE], a
 
 	ld a, 144 ; move the window off-screen
@@ -87,7 +76,7 @@ DEF rLCDC_DEFAULT EQU (1 << rLCDC_ENABLE) | (1 << rLCDC_WINDOW_TILEMAP) | (1 << 
 	ld h, HIGH(vBGMap1)
 	call ClearBgMap
 
-	ld a, rLCDC_DEFAULT
+	ld a, LCDC_DEFAULT
 	ldh [rLCDC], a
 	ld a, 16
 	ldh [hSoftReset], a
@@ -100,7 +89,7 @@ DEF rLCDC_DEFAULT EQU (1 << rLCDC_ENABLE) | (1 << rLCDC_WINDOW_TILEMAP) | (1 << 
 	ld a, BANK(SFX_Shooting_Star)
 	ld [wAudioROMBank], a
 	ld [wAudioSavedROMBank], a
-	ld a, $9c
+	ld a, HIGH(vBGMap1)
 	ldh [hAutoBGTransferDest + 1], a
 	xor a
 	ldh [hAutoBGTransferDest], a
@@ -113,7 +102,7 @@ DEF rLCDC_DEFAULT EQU (1 << rLCDC_ENABLE) | (1 << rLCDC_WINDOW_TILEMAP) | (1 << 
 	call ClearVram
 	call GBPalNormal
 	call ClearSprites
-	ld a, rLCDC_DEFAULT
+	ld a, LCDC_DEFAULT
 	ldh [rLCDC], a
 
 	jp PrepareTitleScreen

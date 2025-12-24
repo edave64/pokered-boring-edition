@@ -7,12 +7,12 @@ AnimateHallOfFame:
 	call LoadTextBoxTilePatterns
 	call DisableLCD
 	ld hl, vBGMap0
-	ld bc, $800
-	ld a, " "
+	ld bc, 2 * TILEMAP_AREA
+	ld a, ' '
 	call FillMemory
 	call EnableLCD
 	ld hl, rLCDC
-	set rLCDC_BG_TILEMAP, [hl]
+	set B_LCDC_BG_MAP, [hl]
 	xor a
 	ld hl, wHallOfFame
 	ld bc, HOF_TEAM
@@ -49,7 +49,7 @@ AnimateHallOfFame:
 	ld a, c
 	ld [wHoFPartyMonIndex], a
 	ld hl, wPartyMon1Level
-	ld bc, wPartyMon2 - wPartyMon1
+	ld bc, PARTYMON_STRUCT_LENGTH
 	call AddNTimes
 	ld a, [hl]
 	ld [wHoFMonLevel], a
@@ -88,7 +88,7 @@ AnimateHallOfFame:
 	xor a
 	ldh [hWY], a
 	ld hl, rLCDC
-	res rLCDC_BG_TILEMAP, [hl]
+	res B_LCDC_BG_MAP, [hl]
 	ret
 
 HallOfFameText:
@@ -188,7 +188,7 @@ HoFLoadPlayerPics:
 	call UncompressSpriteFromDE
 	ld hl, sSpriteBuffer1
 	ld de, sSpriteBuffer0
-	ld bc, $310
+	ld bc, 2 * SPRITEBUFFERSIZE
 	call CopyData
 	ld de, vFrontPic
 	call InterlaceMergeSpriteBuffers
@@ -237,7 +237,7 @@ HoFDisplayPlayerStats:
 	call PlaceString
 	hlcoord 4, 10
 	ld de, wPlayerMoney
-	ld c, $a3
+	ld c, 3 | LEADING_ZEROES | MONEY_SIGN
 	call PrintBCDNumber
 	ld hl, DexSeenOwnedText
 	call HoFPrintTextAndDelay

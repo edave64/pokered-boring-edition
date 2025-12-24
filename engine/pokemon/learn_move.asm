@@ -10,7 +10,7 @@ LearnMove:
 
 DontAbandonLearning:
 	ld hl, wPartyMon1Moves
-	ld bc, wPartyMon2Moves - wPartyMon1Moves
+	ld bc, PARTYMON_STRUCT_LENGTH
 	ld a, [wWhichPokemon]
 	call AddNTimes
 	ld d, h
@@ -38,7 +38,7 @@ DontAbandonLearning:
 .next
 	ld a, [wMoveNum]
 	ld [hl], a
-	ld bc, wPartyMon1PP - wPartyMon1Moves
+	ld bc, MON_PP - MON_MOVES
 	add hl, bc
 	push hl
 	push de
@@ -66,7 +66,7 @@ DontAbandonLearning:
 	ld de, wBattleMonMoves
 	ld bc, NUM_MOVES
 	call CopyData
-	ld bc, wPartyMon1PP - wPartyMon1OTID
+	ld bc, MON_PP - MON_OTID
 	add hl, bc
 	ld de, wBattleMonPP
 	ld bc, NUM_MOVES
@@ -143,7 +143,7 @@ TryingToLearn:
 	inc hl
 	ld a, [wNumMovesMinusOne]
 	ld [hli], a ; wMaxMenuItem
-	ld a, A_BUTTON | B_BUTTON
+	ld a, PAD_A | PAD_B
 	ld [hli], a ; wMenuWatchedKeys
 	ld [hl], 0 ; wLastMenuItem
 	ld hl, hUILayoutFlags
@@ -155,7 +155,7 @@ TryingToLearn:
 	call LoadScreenTilesFromBuffer1
 	pop af
 	pop hl
-	bit BIT_B_BUTTON, a
+	bit B_PAD_B, a
 	jr nz, .cancel
 	push hl
 	ld a, [wCurrentMenuItem]

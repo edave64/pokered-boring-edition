@@ -2,18 +2,18 @@ CeladonPrizeMenu::
 	ld b, COIN_CASE
 	call IsItemInBag
 	jr nz, .havingCoinCase
-	ld hl, RequireCoinCaseTextPtr
+	ld hl, RequireCoinCaseText
 	jp PrintText
 .havingCoinCase
 	ld hl, wStatusFlags5
 	set BIT_NO_TEXT_DELAY, [hl]
-	ld hl, ExchangeCoinsForPrizesTextPtr
+	ld hl, ExchangeCoinsForPrizesText
 	call PrintText
 ; the following are the menu settings
 	xor a
 	ld [wCurrentMenuItem], a
 	ld [wLastMenuItem], a
-	ld a, A_BUTTON | B_BUTTON
+	ld a, PAD_A | PAD_B
 	ld [wMenuWatchedKeys], a
 	ld a, $03
 	ld [wMaxMenuItem], a
@@ -28,10 +28,10 @@ CeladonPrizeMenu::
 	call TextBoxBorder
 	call GetPrizeMenuId
 	call UpdateSprites
-	ld hl, WhichPrizeTextPtr
+	ld hl, WhichPrizeText
 	call PrintText
 	call HandleMenuInput ; menu choice handler
-	bit BIT_B_BUTTON, a
+	bit B_PAD_B, a
 	jr nz, .noChoice
 	ld a, [wCurrentMenuItem]
 	cp 3 ; "NO,THANKS" choice
@@ -42,16 +42,16 @@ CeladonPrizeMenu::
 	res BIT_NO_TEXT_DELAY, [hl]
 	ret
 
-RequireCoinCaseTextPtr:
+RequireCoinCaseText:
 	text_far _RequireCoinCaseText
 	text_waitbutton
 	text_end
 
-ExchangeCoinsForPrizesTextPtr:
+ExchangeCoinsForPrizesText:
 	text_far _ExchangeCoinsForPrizesText
 	text_end
 
-WhichPrizeTextPtr:
+WhichPrizeText:
 	text_far _WhichPrizeText
 	text_end
 
@@ -126,18 +126,15 @@ GetPrizeMenuId:
 ; put prices on the right side of the textbox
 	ld de, wPrize1Price
 	hlcoord 13, 5
-; reg. c:
-; [low nybble] number of bytes
-; [bits 765 = %100] space-padding (not zero-padding)
-	ld c, (1 << 7) | 2
+	ld c, 2 | LEADING_ZEROES
 	call PrintBCDNumber
 	ld de, wPrize2Price
 	hlcoord 13, 7
-	ld c, (1 << 7) | 2
+	ld c, 2 | LEADING_ZEROES
 	call PrintBCDNumber
 	ld de, wPrize3Price
 	hlcoord 13, 9
-	ld c, (1 << 7) | 2
+	ld c, 2 | LEADING_ZEROES
 	jp PrintBCDNumber
 
 INCLUDE "data/events/prizes.asm"
@@ -156,7 +153,7 @@ PrintPrizePrice:
 	call PlaceString
 	hlcoord 13, 1
 	ld de, wPlayerCoins
-	ld c, %10000010
+	ld c, 2 | LEADING_ZEROES
 	call PrintBCDNumber
 	ret
 
@@ -198,7 +195,7 @@ HandlePrizeChoice:
 .getMonName
 	call GetMonName
 .givePrize
-	ld hl, SoYouWantPrizeTextPtr
+	ld hl, SoYouWantPrizeText
 	call PrintText
 	call YesNoChoice
 	ld a, [wCurrentMenuItem] ; yes/no answer (Y=0, N=1)
@@ -246,25 +243,25 @@ HandlePrizeChoice:
 	predef SubBCDPredef
 	jp PrintPrizePrice
 .bagFull
-	ld hl, PrizeRoomBagIsFullTextPtr
+	ld hl, PrizeRoomBagIsFullText
 	jp PrintText
 .notEnoughCoins
 	ld hl, SorryNeedMoreCoinsText
 	jp PrintText
 .printOhFineThen
-	ld hl, OhFineThenTextPtr
+	ld hl, OhFineThenText
 	jp PrintText
 
 UnknownPrizeData:
 ; XXX what's this?
 	db $00,$01,$00,$01,$00,$01,$00,$00,$01
 
-HereYouGoTextPtr:
+HereYouGoText: ; unreferenced
 	text_far _HereYouGoText
 	text_waitbutton
 	text_end
 
-SoYouWantPrizeTextPtr:
+SoYouWantPrizeText:
 	text_far _SoYouWantPrizeText
 	text_end
 
@@ -273,12 +270,12 @@ SorryNeedMoreCoinsText:
 	text_waitbutton
 	text_end
 
-PrizeRoomBagIsFullTextPtr:
+PrizeRoomBagIsFullText:
 	text_far _OopsYouDontHaveEnoughRoomText
 	text_waitbutton
 	text_end
 
-OhFineThenTextPtr:
+OhFineThenText:
 	text_far _OhFineThenText
 	text_waitbutton
 	text_end

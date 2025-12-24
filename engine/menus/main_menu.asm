@@ -8,7 +8,7 @@ MainMenu:
 	call CheckForPlayerNameInSRAM
 	jr nc, .mainMenuLoop
 
-	predef LoadSAV
+	predef TryLoadSaveFile
 
 .mainMenuLoop
 	ld c, 20
@@ -61,12 +61,12 @@ MainMenu:
 	ld [wTopMenuItemX], a
 	inc a
 	ld [wTopMenuItemY], a
-	ld a, A_BUTTON | B_BUTTON | START
+	ld a, PAD_A | PAD_B | PAD_START
 	ld [wMenuWatchedKeys], a
 	ld a, [wSaveFileStatus]
 	ld [wMaxMenuItem], a
 	call HandleMenuInput
-	bit BIT_B_BUTTON, a
+	bit B_PAD_B, a
 	jp nz, DisplayTitleScreen ; if so, go back to the title screen
 	ld c, 20
 	call DelayFrames
@@ -99,9 +99,9 @@ MainMenu:
 	ldh [hJoyHeld], a
 	call Joypad
 	ldh a, [hJoyHeld]
-	bit BIT_A_BUTTON, a
+	bit B_PAD_A, a
 	jr nz, .pressedA
-	bit BIT_B_BUTTON, a
+	bit B_PAD_B, a
 	jp nz, .mainMenuLoop
 	jr .inputLoop
 .pressedA
@@ -166,7 +166,7 @@ LinkMenu:
 	ld a, 2
 	ld [hli], a
 	ASSERT wMaxMenuItem + 1 == wMenuWatchedKeys
-	ASSERT 2 + 1 == A_BUTTON | B_BUTTON
+	ASSERT 2 + 1 == PAD_A | PAD_B
 	inc a
 	ld [hli], a
 	ASSERT wMenuWatchedKeys + 1 == wLastMenuItem
@@ -174,7 +174,7 @@ LinkMenu:
 	ld [hl], a
 .waitForInputLoop
 	call HandleMenuInput
-	and A_BUTTON | B_BUTTON
+	and PAD_A | PAD_B
 	add a
 	add a
 	ld b, a
@@ -224,14 +224,14 @@ LinkMenu:
 	jr nz, .skipStartingTransfer
 	call DelayFrame
 	call DelayFrame
-	ld a, START_TRANSFER_INTERNAL_CLOCK
+	ld a, SC_START | SC_INTERNAL
 	ldh [rSC], a
 .skipStartingTransfer
-	ld b, " "
-	ld c, " "
-	ld d, "▷"
+	ld b, ' '
+	ld c, ' '
+	ld d, '▷'
 	ld a, [wLinkMenuSelectionSendBuffer]
-	and B_BUTTON << 2 ; was B button pressed?
+	and PAD_B << 2 ; was B button pressed?
 	jr nz, .updateCursorPosition
 ; A button was pressed
 	ld a, [wCurrentMenuItem]
@@ -254,7 +254,7 @@ LinkMenu:
 	call DelayFrames
 	call LoadScreenTilesFromBuffer1
 	ld a, [wLinkMenuSelectionSendBuffer]
-	and B_BUTTON << 2 ; was B button pressed?
+	and PAD_B << 2 ; was B button pressed?
 	jr nz, .choseCancel ; cancel if B pressed
 	ld a, [wCurrentMenuItem]
 	cp $2
@@ -487,14 +487,15 @@ DisplayOptionMenu:
 	call JoypadLowSensitivity
 	ldh a, [hJoy5]
 	ld b, a
-	and A_BUTTON | B_BUTTON | START | D_RIGHT | D_LEFT | D_UP | D_DOWN ; any key besides select pressed?
+	and ~PAD_SELECT ; any key besides select pressed?
 	jr z, .getJoypadStateLoop
-	bit BIT_B_BUTTON, b
+	bit B_PAD_B, b
 	jr nz, .exitMenu
-	bit BIT_START, b
+	bit B_PAD_START, b
 	jr nz, .exitMenu
-	bit BIT_A_BUTTON, b
+	bit B_PAD_A, b
 	jr z, .checkDirectionKeys
+; A was pressed
 	ld a, [wTopMenuItemY]
 	cp 16 ; is the cursor on Cancel?
 	jr nz, .loop
@@ -508,9 +509,9 @@ DisplayOptionMenu:
 	jp .loop
 .checkDirectionKeys
 	ld a, [wTopMenuItemY]
-	bit BIT_D_DOWN, b
+	bit B_PAD_DOWN, b
 	jr nz, .downPressed
-	bit BIT_D_UP, b
+	bit B_PAD_UP, b
 	jr nz, .upPressed
 	cp 8 ; cursor in Battle Animation section?
 	jr z, .cursorInBattleAnimation
@@ -518,8 +519,8 @@ DisplayOptionMenu:
 	jr z, .cursorInBattleStyle
 	cp 16 ; cursor on Cancel?
 	jr z, .loop
-.cursorInTextSpeed
-	bit BIT_D_LEFT, b
+; cursor in Text Speed
+	bit B_PAD_LEFT, b
 	jp nz, .pressedLeftInTextSpeed
 	jp .pressedRightInTextSpeed
 .downPressed
@@ -625,7 +626,7 @@ SetOptionsFromCursorPositions:
 	ld a, [wOptionsBattleAnimCursorX] ; battle animation cursor X coordinate
 	dec a
 	jr z, .battleAnimationOn
-.battleAnimationOff
+; battle animation Off
 	set BIT_BATTLE_ANIMATION, d
 	jr .checkBattleStyle
 .battleAnimationOn
@@ -634,7 +635,7 @@ SetOptionsFromCursorPositions:
 	ld a, [wOptionsBattleStyleCursorX] ; battle style cursor X coordinate
 	dec a
 	jr z, .battleStyleShift
-.battleStyleSet
+; battle style Set
 	set BIT_BATTLE_SHIFT, d
 	jr .storeOptions
 .battleStyleShift
@@ -682,7 +683,7 @@ SetCursorPositionsFromOptions:
 	ld e, a
 	ld d, 0
 	add hl, de
-	ld [hl], "▷"
+	ld [hl], '▷'
 	ret
 
 ; table that indicates how the 3 text speed options affect frame delays
@@ -699,28 +700,29 @@ CheckForPlayerNameInSRAM:
 ; Check if the player name data in SRAM has a string terminator character
 ; (indicating that a name may have been saved there) and return whether it does
 ; in carry.
-	ld a, SRAM_ENABLE
-	ld [MBC1SRamEnable], a
-	ld a, $1
-	ld [MBC1SRamBankingMode], a
-	ld [MBC1SRamBank], a
+	ld a, RAMG_SRAM_ENABLE
+	ld [rRAMG], a
+	ld a, BMODE_ADVANCED
+	ld [rBMODE], a
+	ASSERT BANK(sPlayerName) == BMODE_ADVANCED
+	ld [rRAMB], a
 	ld b, NAME_LENGTH
 	ld hl, sPlayerName
 .loop
 	ld a, [hli]
-	cp "@"
+	cp '@'
 	jr z, .found
 	dec b
 	jr nz, .loop
 ; not found
 	xor a
-	ld [MBC1SRamEnable], a
-	ld [MBC1SRamBankingMode], a
+	ld [rRAMG], a
+	ld [rBMODE], a
 	and a
 	ret
 .found
 	xor a
-	ld [MBC1SRamEnable], a
-	ld [MBC1SRamBankingMode], a
+	ld [rRAMG], a
+	ld [rBMODE], a
 	scf
 	ret

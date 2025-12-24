@@ -94,7 +94,7 @@ CalcPositionOfPlayerRelativeToNPC:
 	ld a, [hli] ; NPC sprite screen Y position in pixels
 	call CalcDifference
 	jr nc, .NPCSouthOfOrAlignedWithPlayer
-.NPCNorthOfPlayer
+; NPC north of player
 	push hl
 	ld hl, hNPCPlayerRelativePosFlags
 	bit BIT_PLAYER_LOWER_Y, [hl]
@@ -122,7 +122,7 @@ CalcPositionOfPlayerRelativeToNPC:
 	ld a, [hl] ; NPC sprite screen X position in pixels
 	call CalcDifference
 	jr nc, .NPCEastOfOrAlignedWithPlayer
-.NPCWestOfPlayer
+; NPC west of player
 	push hl
 	ld hl, hNPCPlayerRelativePosFlags
 	bit BIT_PLAYER_LOWER_X, [hl]
@@ -191,10 +191,10 @@ ConvertNPCMovementDirectionToJoypadMask:
 	ret
 
 NPCMovementDirectionsToJoypadMasksTable:
-	db NPC_MOVEMENT_UP, D_UP
-	db NPC_MOVEMENT_DOWN, D_DOWN
-	db NPC_MOVEMENT_LEFT, D_LEFT
-	db NPC_MOVEMENT_RIGHT, D_RIGHT
+	db NPC_MOVEMENT_UP, PAD_UP
+	db NPC_MOVEMENT_DOWN, PAD_DOWN
+	db NPC_MOVEMENT_LEFT, PAD_LEFT
+	db NPC_MOVEMENT_RIGHT, PAD_RIGHT
 	db $ff
 
 ; unreferenced

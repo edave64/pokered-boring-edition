@@ -31,7 +31,7 @@ ENDC
 	ld hl, PewterCityPlayerLeavingEastCoords
 	call ArePlayerCoordsInArray
 	ret nc
-	ld a, D_RIGHT | D_LEFT | D_UP | D_DOWN
+	ld a, PAD_CTRL_PAD
 	ld [wJoyIgnore], a
 	ld a, TEXT_PEWTERCITY_YOUNGSTER
 	ldh [hTextID], a
@@ -132,7 +132,7 @@ PewterCityYoungsterShowsPlayerGymScript:
 	call DisplayTextID
 	ld a, $3c
 	ldh [hSpriteScreenYCoord], a
-	ld a, $40
+	ld a, $40 ; BUG: should load $50, using $40 causes sprite misalignment
 	ldh [hSpriteScreenXCoord], a
 	ld a, 22
 	ldh [hSpriteMapYCoord], a
